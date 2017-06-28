@@ -6,8 +6,10 @@ const totalRows = 3;
 const squaresPerRow = 3;
 
 function Square(props) {
+    const bgColor = props.won ? 'red' : 'white';
+
     return (
-        <button className="square" onClick={props.onClick}>
+        <button className="square" onClick={props.onClick} style={{background: bgColor }}>
             {props.value}
         </button>
     );
@@ -15,11 +17,15 @@ function Square(props) {
 
 class Board extends React.Component {
     renderSquare(i) {
+        let won = false;
+        if (this.props.coords.includes(i)) {
+            won = true;
+        }
         return (
             <Square
-                id={i}
+                key={i}
                 value={this.props.squares[i]}
-                onClick={() => this.props.onClick(i)}
+                onClick={() => this.props.onClick(i)} won={won}
             />
         );
     }
@@ -30,7 +36,7 @@ class Board extends React.Component {
         for (let s = 0; s < squaresPerRow; s++) {
             sq.push(this.renderSquare(s+offset));
         }
-        return (<div className="board-row">{sq}</div>);
+        return (<div className="board-row" key={row}>{sq}</div>);
     }
 
     render() {
@@ -39,25 +45,6 @@ class Board extends React.Component {
             rows.push(this.renderRow(i))
         }
         return (<div>{rows}</div>);
-    //     return (
-    //         <div>
-    //             <div className="board-row">
-    //                 {this.renderSquare(0)}
-    //                 {this.renderSquare(1)}
-    //                 {this.renderSquare(2)}
-    //             </div>
-    //             <div className="board-row">
-    //                 {this.renderSquare(3)}
-    //                 {this.renderSquare(4)}
-    //                 {this.renderSquare(5)}
-    //             </div>
-    //             <div className="board-row">
-    //                 {this.renderSquare(6)}
-    //                 {this.renderSquare(7)}
-    //                 {this.renderSquare(8)}
-    //             </div>
-    //         </div>
-    //     );
     }
 }
 
@@ -98,7 +85,9 @@ class Game extends React.Component {
     render() {
         const history = this.state.history;
         const current = history[this.state.stepNumber];
-        const winner = calculateWinner(current.squares) ? calculateWinner(current.squares).winner : null;
+        const isWin = calculateWinner(current.squares) ? calculateWinner(current.squares) : null;
+        const winner = isWin ? isWin.winner : null;
+        const coords = isWin ? isWin.coords : [];
 
         const moves = history.map((step, move) => {
             const desc = move ?
@@ -124,7 +113,7 @@ class Game extends React.Component {
         return (
             <div className="game">
                 <div className="game-board">
-                    <Board squares={current.squares} onClick={(i) => this.handleClick(i)} />
+                    <Board coords={coords} squares={current.squares} onClick={(i) => this.handleClick(i)} />
                 </div>
                 <div className="game-info">
                     <div>{status}</div>
