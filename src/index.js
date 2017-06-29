@@ -55,6 +55,7 @@ class Game extends React.Component {
             history: [{squares: Array(9).fill(null), coordsChanged: null}],
             xStarted: true,
             stepNumber: 0,
+            buttonStates: { isReversed: false }
         };
 }
 
@@ -66,7 +67,7 @@ class Game extends React.Component {
 
     getCoords(cellNumber) {
         let res = {x: cellNumber % squaresPerRow, y: Math.floor(cellNumber / totalRows) };
-        return '(' + res.y + ',' + res.x + ')'
+        return '(' + res.y + ',' + res.x + ')';
     }
 
     handleClick(i) {
@@ -84,7 +85,7 @@ class Game extends React.Component {
             history: history.concat([{
                 squares: squares, coordsChanged: i
             }]),
-            stepNumber: history.length,
+            stepNumber: history.length
         });
     }
 
@@ -94,6 +95,10 @@ class Game extends React.Component {
         });
     }
 
+    reverse() {
+        this.setState({buttonStates: {isReversed: !this.state.buttonStates.isReversed}});
+    }
+
     render() {
         const history = this.state.history;
         const current = history[this.state.stepNumber];
@@ -101,7 +106,7 @@ class Game extends React.Component {
         const winner = isWin ? isWin.winner : null;
         const coords = isWin ? isWin.coords : [];
 
-        const moves = history.map((step, moveNumber) => {
+        let moves = history.map((step, moveNumber) => {
             const desc = moveNumber ?
                 'Move #' + this.getCurrentPlayer(moveNumber) + ' ' + this.getCoords(step.coordsChanged) : 'Game start';
             return (
@@ -111,6 +116,10 @@ class Game extends React.Component {
                 </li>
             );
         });
+
+        if (this.state.buttonStates.isReversed) {
+            moves = moves.reverse();
+        }
 
         let status;
         if (winner) {
@@ -129,7 +138,9 @@ class Game extends React.Component {
                 </div>
                 <div className="game-info">
                     <div>{status}</div>
+                    /*<ol {this.state.buttonStates.isReversed ? 'reversed' : ''}>{moves}</ol> gonna acquire how to do it reverse soon*/
                     <ol>{moves}</ol>
+                    <button onClick={() => this.reverse()}>Reverse</button>
                 </div>
             </div>
         );
