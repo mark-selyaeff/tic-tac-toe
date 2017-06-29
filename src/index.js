@@ -52,33 +52,45 @@ class Game extends React.Component {
     constructor() {
         super();
         this.state = {
-            history: [{squares: Array(9).fill(null),}],
-            xIsNext: true,
+            history: [{squares: Array(9).fill(null), coordsChanged: null}],
+            xStarted: true,
             stepNumber: 0,
         };
 }
 
+    getCurrentPlayer(moveNumber) {
+        //If X started (true), then return an 'X' when move number length is odd
+        //If O started (false), then return an 'O' when move number is odd
+        return (moveNumber % 2) - this.state.xStarted ? 'O' : 'X';
+    }
+
+    getCoords(cellNumber) {
+        let res = {x: cellNumber % squaresPerRow, y: Math.floor(cellNumber / totalRows) };
+        return '(' + res.y + ',' + res.x + ')'
+    }
+
     handleClick(i) {
         const history = this.state.history.slice(0, this.state.stepNumber + 1);
         const current = history[history.length - 1];
+        console.log(history.length);
         const squares = current.squares.slice();
         if (calculateWinner(squares) || squares[i]) {
             return;
         }
-        squares[i] = this.state.xIsNext ? 'X' : 'O';
+
+        squares[i] = this.getCurrentPlayer(history.length);
+
         this.setState({
             history: history.concat([{
-                squares: squares
+                squares: squares, coordsChanged: i
             }]),
             stepNumber: history.length,
-            xIsNext: !this.state.xIsNext,
         });
     }
 
     jumpTo(step) {
         this.setState({
-            stepNumber: step,
-            xIsNext: (step % 2) ? false : true,
+            stepNumber: step
         });
     }
 
@@ -89,13 +101,13 @@ class Game extends React.Component {
         const winner = isWin ? isWin.winner : null;
         const coords = isWin ? isWin.coords : [];
 
-        const moves = history.map((step, move) => {
-            const desc = move ?
-                'Move #' + move :
-                'Game start';
+        const moves = history.map((step, moveNumber) => {
+            const desc = moveNumber ?
+                'Move #' + this.getCurrentPlayer(moveNumber) + ' ' + this.getCoords(step.coordsChanged) : 'Game start';
             return (
-                <li key={move}>
-                    <a href="#" onClick={() => this.jumpTo(move)}>{desc}</a>
+                <li key={moveNumber}>
+                    <a href="#" style={{'font-weight': moveNumber === this.state.stepNumber ? 'bold' : 'normal'}}
+                       onClick={() => this.jumpTo(moveNumber)}>{desc}</a>
                 </li>
             );
         });
@@ -104,7 +116,7 @@ class Game extends React.Component {
         if (winner) {
             status = 'Winner: ' + winner;
         } else {
-            status = 'Next player: ' + (this.state.xIsNext ? 'X' : 'O');
+            status = 'Next player: ' + this.getCurrentPlayer(history.length);
             if (this.state.stepNumber >= totalRows * squaresPerRow) {
                 status = "It's a draw!";
             }
